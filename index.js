@@ -1,6 +1,6 @@
 const express = require("express");
 const app = express();
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion } = require("mongodb");
 require("dotenv").config();
 const cors = require("cors");
 const port = process.env.PORT || 5000;
@@ -9,8 +9,8 @@ const port = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-
-const uri = "mongodb+srv://BookNest:X8cKcilmAaqABzWL@cluster0.t4loxgb.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
+const uri =
+  "mongodb+srv://BookNest:X8cKcilmAaqABzWL@cluster0.t4loxgb.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -18,29 +18,34 @@ const client = new MongoClient(uri, {
     version: ServerApiVersion.v1,
     strict: true,
     deprecationErrors: true,
-  }
+  },
 });
 
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    // await client.connect();
     // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
-    console.log("Pinged your deployment. You successfully connected to MongoDB!");
+    // await client.db("admin").command({ ping: 1 });
+    // console.log("Pinged your deployment. You successfully connected to MongoDB!");
+    const BookCollection = client.db("Book_Nest").collection("Book-items");
+
+    // api for find all items
+    app.get("/BookItems", async (req, res) => {
+      const result = await BookCollection.find().toArray();
+      res.send(result);
+    });
   } finally {
     // Ensures that the client will close when you finish/error
-    await client.close();
+    // await client.close();
   }
 }
 run().catch(console.dir);
 
+app.get("/", (req, res) => {
+  res.send("book nest is ready for you");
+});
 
-
-app.get('/', (req, res) => {
-    res.send("book nest is ready for you")
-})
-
-app.listen(port, ()=>{
-    console.log(`booknest server is running on port : ${port}`)
-})
+app.listen(port, () => {
+  console.log(`booknest server is running on port : ${port}`);
+});
