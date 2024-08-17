@@ -9,7 +9,7 @@ const port = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-const uri = process.env.MONGO_URI; // Ensure this is correct
+const uri = process.env.DB_URI; // Ensure this is correct
 
 const client = new MongoClient(uri, {
   serverApi: {
@@ -24,16 +24,26 @@ async function run() {
     await client.connect();
     const BookCollection = client.db("Book_Nest").collection("Book-items");
 
-    // API for finding items with pagination
+    // API for finding items with pagination and searching
     app.get("/BookItems", async (req, res) => {
       const page = parseInt(req.query.page) || 1;
       const limit = parseInt(req.query.limit) || 10;
       const skip = (page - 1) * limit;
+      const search = req.query.search || "";
+      const category = req.query.category || "";
 
       try {
+        const query = {};
+        if (search) {
+          query.title = { $regex: search, $options: 'i' }; // Case-insensitive search
+        }
+        if (category) {
+          query.category = category;
+        }
+
         const [books, total] = await Promise.all([
-          BookCollection.find().skip(skip).limit(limit).toArray(),
-          BookCollection.countDocuments()
+          BookCollection.find(query).skip(skip).limit(limit).toArray(),
+          BookCollection.countDocuments(query)
         ]);
 
         res.json({
